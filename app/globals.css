@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: #f7f4ee;
+  color: #1b2430;
+}
+
+.input {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ddd4bf;
+  border-radius: 2px;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+}
+.input:focus {
+  outline: none;
+  border-color: #16263a;
+}
+
+.label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5b6472;
+  margin-bottom: 6px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 2px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.btn-primary {
+  background: #16263a;
+  color: #fff;
+}
+.btn-primary:hover {
+  background: #22384f;
+}
+.btn-outline {
+  background: transparent;
+  border-color: #16263a;
+  color: #16263a;
+}
+.btn-outline:hover {
+  background: #16263a;
+  color: #fff;
+}
+.btn-danger {
+  background: #8c2f2f;
+  color: #fff;
+}
+.btn-danger:hover {
+  background: #712323;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #ddd4bf;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid currentColor;
+}
+
+/* Status pill, à la Bluecare */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.status-pill.is-open {
+  background: #e4f0e6;
+  color: #2f6b45;
+}
+.status-pill.is-closed {
+  background: #f1e3e3;
+  color: #8c2f2f;
+}
+.status-pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Soft neutral info panel, à la Bluecare */
+.panel {
+  background: #f2f0ea;
+  border-radius: 10px;
+  padding: 22px 24px;
+}
+
+/* Toggle switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle .slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #d3cebd;
+  border-radius: 999px;
+  transition: background 0.15s;
+}
+.toggle .slider:before {
+  content: "";
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.15s;
+}
+.toggle input:checked + .slider {
+  background: #2f6b45;
+}
+.toggle input:checked + .slider:before {
+  transform: translateX(18px);
+}
+
+/* Tabs */
+.tabbar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #ddd4bf;
+  margin-bottom: 28px;
+}
+.tabbar button {
+  padding: 12px 18px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #5b6472;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.tabbar button.active {
+  color: #16263a;
+  border-bottom-color: #16263a;
+}
+.tabbar button .count {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.72rem;
+  color: #8a6a34;
+}
