@@ -14,7 +14,7 @@ export async function POST(request) {
   const excludeCvrNumbers = params.includeAlreadySaved ? undefined : getSavedCvrNumbers();
 
   try {
-    const data = await searchCvr({ ...params, excludeCvrNumbers });
+    const data = await searchCvr({ ...params, excludeCvrNumbers, kunAktive: true });
     return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 400 });

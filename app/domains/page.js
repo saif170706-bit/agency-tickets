@@ -23,14 +23,14 @@ export default function DomainsOverviewPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
-      <h1 className="font-serif text-3xl text-navy mb-1">Domæner</h1>
+      <h1 className="font-sans text-3xl text-dark mb-1">Domæner</h1>
       <p className="text-muted text-sm mb-8">
         Overblik over alle domæner registreret til kunder, sorteret efter fornyelsesdato.
       </p>
 
       {expiringSoon.length > 0 && (
         <div className="panel mb-8" style={{ background: "#f6ecd9" }}>
-          <p className="text-sm text-navy">
+          <p className="text-sm text-dark">
             ⚠️ <b>{expiringSoon.length}</b> domæne{expiringSoon.length > 1 ? "r" : ""} skal fornyes inden for 30 dage.
           </p>
         </div>
@@ -60,7 +60,7 @@ export default function DomainsOverviewPage() {
                 const soon = days <= 30;
                 return (
                   <tr key={d.id} className="border-t border-border">
-                    <td className="px-4 py-3 font-mono text-navy font-medium">{d.domainName}</td>
+                    <td className="px-4 py-3 font-mono text-dark font-medium">{d.domainName}</td>
                     <td className="px-4 py-3 text-muted">{d.customerName || d.registeredToName}</td>
                     <td className="px-4 py-3 text-muted">{d.registrar}</td>
                     <td className="px-4 py-3">
@@ -72,7 +72,7 @@ export default function DomainsOverviewPage() {
                     <td className="px-4 py-3 text-muted">{d.customerPrice} kr</td>
                     <td className="px-4 py-3">
                       {d.ticketRef && (
-                        <Link href={`/tickets/${d.ticketRef}`} className="text-navy underline text-xs">
+                        <Link href={`/tickets/${d.ticketRef}`} className="text-dark underline text-xs">
                           {d.ticketRef}
                         </Link>
                       )}

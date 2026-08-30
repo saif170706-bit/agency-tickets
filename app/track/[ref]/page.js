@@ -18,8 +18,8 @@ export default function TrackingPage({ params }) {
     <div className="min-h-screen bg-bg">
       <header className="border-b border-border">
         <div className="max-w-2xl mx-auto px-6 h-20 flex items-center gap-3">
-          <span className="w-8 h-8 rounded-full border border-navy flex items-center justify-center font-serif text-sm text-navy">N</span>
-          <span className="font-serif text-lg text-navy">{COMPANY_NAME}</span>
+          <span className="w-8 h-8 rounded-full border border-dark flex items-center justify-center font-sans text-sm text-dark">N</span>
+          <span className="font-sans text-lg text-dark">{COMPANY_NAME}</span>
         </div>
       </header>
 
@@ -27,7 +27,7 @@ export default function TrackingPage({ params }) {
         <span className="text-xs font-bold tracking-widest uppercase text-accent">
           Sagsnummer {ticket.ref}
         </span>
-        <h1 className="font-serif text-3xl text-navy mt-3 mb-2">{ticket.title}</h1>
+        <h1 className="font-sans text-3xl text-dark mt-3 mb-2">{ticket.title}</h1>
         <p className="text-muted mb-12">
           {ticket.isClosed
             ? "Denne sag er afsluttet."
@@ -45,18 +45,18 @@ export default function TrackingPage({ params }) {
                     <div
                       className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                         done || isCurrent
-                          ? "bg-navy text-white"
+                          ? "bg-dark text-white"
                           : "border border-border text-muted"
                       }`}
                     >
                       {done ? "✓" : i + 1}
                     </div>
                     {i < steps.length - 1 && (
-                      <div className={`w-px flex-1 min-h-[28px] ${done ? "bg-navy" : "bg-border"}`} />
+                      <div className={`w-px flex-1 min-h-[28px] ${done ? "bg-dark" : "bg-border"}`} />
                     )}
                   </div>
                   <div className="pb-8">
-                    <p className={`font-medium ${isCurrent ? "text-navy" : done ? "text-navy" : "text-muted"}`}>
+                    <p className={`font-medium ${isCurrent ? "text-dark" : done ? "text-dark" : "text-muted"}`}>
                       {label}
                     </p>
                     {isCurrent && <p className="text-xs text-accent mt-1">Vi er her nu</p>}
@@ -69,7 +69,7 @@ export default function TrackingPage({ params }) {
 
         <p className="text-sm text-muted mt-10">
           Har du spørgsmål til din sag? Kontakt os og henvis til sagsnummer{" "}
-          <span className="font-mono text-navy">{ticket.ref}</span>.
+          <span className="font-mono text-dark">{ticket.ref}</span>.
         </p>
       </main>
     </div>

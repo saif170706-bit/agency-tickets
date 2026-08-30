@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentEmployee } from "../../../lib/session";
 import { createTicket, listTickets } from "../../../lib/tickets";
+import { getCustomer } from "../../../lib/customers";
 import { notifyTicketCreated } from "../../../lib/notify";
 
 export async function GET(request) {
@@ -18,7 +19,7 @@ export async function POST(request) {
   if (!employee) return NextResponse.json({ error: "Ikke logget ind" }, { status: 401 });
 
   const body = await request.json();
-  const { type, title, description, customer, roadmap } = body;
+  const { type, title, description, customer: manualCustomer, roadmap, kundeId } = body;
 
   if (!type || !["build", "support"].includes(type)) {
     return NextResponse.json({ error: "Vælg sagstype" }, { status: 400 });
@@ -26,17 +27,44 @@ export async function POST(request) {
   if (!title || !title.trim()) {
     return NextResponse.json({ error: "Titel er påkrævet" }, { status: 400 });
   }
-  if (!customer || !customer.name || !customer.phone || !customer.email) {
-    return NextResponse.json(
-      { error: "Navn, telefon og e-mail på kunden er påkrævet" },
-      { status: 400 }
-    );
+
+  let customer;
+
+  if (kundeId) {
+    // Hent kontaktinfo fra kundeprofilen — ingen manuel udfyldning nødvendig
+    const kunde = getCustomer(kundeId);
+    if (!kunde) return NextResponse.json({ error: "Kundeprofil ikke fundet" }, { status: 404 });
+
+    const phone = kunde.telefon;
+    const email = kunde.email;
+
+    if (!phone || !email) {
+      return NextResponse.json(
+        { error: "Kundens profil mangler telefon eller e-mail — opdater profilen og prøv igen" },
+        { status: 400 }
+      );
+    }
+
+    customer = {
+      name: kunde.kontaktperson || kunde.navn,
+      phone,
+      email,
+      address: kunde.adresse || "",
+      cvr: kunde.cvrNummer || "",
+    };
+  } else {
+    // Manuel oprettelse — kræver alle felter
+    customer = manualCustomer || {};
+    if (!customer.name || !customer.phone || !customer.email) {
+      return NextResponse.json(
+        { error: "Navn, telefon og e-mail på kunden er påkrævet" },
+        { status: 400 }
+      );
+    }
   }
 
-  const ticket = createTicket({ type, title, description, customer, roadmap }, employee);
+  const ticket = createTicket({ type, title, description, customer, roadmap, kundeId: kundeId || null }, employee);
 
-  // Send SMS + e-mail til kunden om at sagen er oprettet (fejler stille,
-  // hvis SMS/e-mail-udbyder endnu ikke er konfigureret).
   notifyTicketCreated(ticket).catch((err) => console.error("Notifikation fejlede:", err));
 
   return NextResponse.json({ ok: true, ref: ticket.ref });

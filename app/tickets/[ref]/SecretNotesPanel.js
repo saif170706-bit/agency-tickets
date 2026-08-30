@@ -34,7 +34,7 @@ function SecretNoteCard({ ticket, note, onChanged }) {
   return (
     <div className="panel">
       <div className="flex items-start justify-between mb-1">
-        <h3 className="font-semibold text-navy text-[0.98rem]">{note.title}</h3>
+        <h3 className="font-semibold text-dark text-[0.98rem]">{note.title}</h3>
         <button onClick={onDelete} disabled={deleting} className="text-muted hover:text-danger text-sm">
           🗑
         </button>
@@ -50,7 +50,7 @@ function SecretNoteCard({ ticket, note, onChanged }) {
       </label>
 
       {revealed ? (
-        <p className="text-sm font-mono text-navy bg-white border border-border rounded-md px-3 py-2 whitespace-pre-wrap break-all">
+        <p className="text-sm font-mono text-dark bg-white border border-border rounded-md px-3 py-2 whitespace-pre-wrap break-all">
           {note.body}
         </p>
       ) : (
@@ -94,7 +94,7 @@ export default function SecretNotesPanel({ ticket, secretNotes, onChanged }) {
     <div>
       <div className="flex items-center justify-between mb-2">
         <div>
-          <h2 className="font-serif text-lg text-navy">Følsomme oplysninger</h2>
+          <h2 className="font-sans text-lg text-dark">Følsomme oplysninger</h2>
           <p className="text-xs text-muted">
             Skjult som standard. Klik på afsløringsknappen for at se i 30 sekunder. Slettes automatisk, når sagen lukkes.
           </p>

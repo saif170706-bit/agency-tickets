@@ -9,9 +9,9 @@ function InfoRow({ label, value, href }) {
     <div className="flex justify-between gap-4 py-2 border-b border-border last:border-0 text-sm">
       <span className="text-muted">{label}</span>
       {href ? (
-        <a href={href} className="text-navy font-medium">{value}</a>
+        <a href={href} className="text-dark font-medium">{value}</a>
       ) : (
-        <span className="text-navy font-medium">{value}</span>
+        <span className="text-dark font-medium">{value}</span>
       )}
     </div>
   );
@@ -22,7 +22,7 @@ export default function TicketDetailView({ ticket, notes, secretNotes, logs, doc
     <div>
       <div className={`grid ${compact ? "grid-cols-1" : "grid-cols-2"} gap-6 mb-10`}>
         <div className="card p-7">
-          <h3 className="font-serif text-lg text-navy mb-4">{ticket.customer.name}</h3>
+          <h3 className="font-sans text-lg text-dark mb-4">{ticket.customer.name}</h3>
           <InfoRow label="Telefon" value={ticket.customer.phone} href={`tel:${ticket.customer.phone}`} />
           <InfoRow label="E-mail" value={ticket.customer.email} href={`mailto:${ticket.customer.email}`} />
           <InfoRow label="Adresse" value={ticket.customer.address} />
@@ -31,7 +31,7 @@ export default function TicketDetailView({ ticket, notes, secretNotes, logs, doc
 
         <div className="card p-7">
           <div className="flex items-start justify-between mb-4">
-            <h3 className="font-serif text-lg text-navy">Sag – {ticket.ref}</h3>
+            <h3 className="font-sans text-lg text-dark">Sag – {ticket.ref}</h3>
             <span className={`status-pill ${ticket.isClosed ? "is-closed" : "is-open"}`}>
               <span className="dot" />
               {ticket.isClosed ? "Lukket" : ticket.statusLabel}
@@ -47,7 +47,7 @@ export default function TicketDetailView({ ticket, notes, secretNotes, logs, doc
       </div>
 
       <div className="mb-8">
-        <h1 className="font-serif text-2xl text-navy">{ticket.title}</h1>
+        <h1 className="font-sans text-2xl text-dark">{ticket.title}</h1>
       </div>
 
       <TicketTabs

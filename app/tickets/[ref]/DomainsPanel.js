@@ -142,7 +142,7 @@ export default function DomainsPanel({ ticket, domains, onChanged }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-serif text-lg text-navy">Domæner</h2>
+        <h2 className="font-sans text-lg text-dark">Domæner</h2>
         {!open && !editing && (
           <button onClick={() => setOpen(true)} className="btn btn-outline !text-xs !py-2">+ Registrér domæne</button>
         )}
@@ -174,7 +174,7 @@ export default function DomainsPanel({ ticket, domains, onChanged }) {
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="font-mono text-navy font-semibold">{d.domainName}</span>
+                    <span className="font-mono text-dark font-semibold">{d.domainName}</span>
                     <RenewalBadge renewalDate={d.renewalDate} />
                   </div>
                   <p className="text-xs text-muted">
@@ -185,7 +185,7 @@ export default function DomainsPanel({ ticket, domains, onChanged }) {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => setEditing(d)} className="text-xs text-navy underline">Redigér</button>
+                  <button onClick={() => setEditing(d)} className="text-xs text-dark underline">Redigér</button>
                   <button onClick={() => remove(d.id, d.domainName)} className="text-muted hover:text-danger text-sm">🗑</button>
                 </div>
               </div>

@@ -38,7 +38,7 @@ export default function DocumentsPanel({ ticket, documents, onChanged }) {
 
   return (
     <div>
-      <h2 className="font-serif text-lg text-navy mb-4">Dokumenter</h2>
+      <h2 className="font-sans text-lg text-dark mb-4">Dokumenter</h2>
 
       {!ticket.isClosed && (
         <div
@@ -55,10 +55,10 @@ export default function DocumentsPanel({ ticket, documents, onChanged }) {
             if (file) upload(file);
           }}
           className={`border border-dashed rounded-md text-center py-10 px-6 cursor-pointer mb-5 transition-colors ${
-            dragOver ? "border-navy bg-bgalt" : "border-border"
+            dragOver ? "border-dark bg-bgalt" : "border-border"
           }`}
         >
-          <p className="text-sm text-navy">
+          <p className="text-sm text-dark">
             <span className="font-semibold underline">Klik for at uploade</span> eller træk og slip
           </p>
           <p className="text-xs text-muted mt-1">
@@ -93,7 +93,7 @@ export default function DocumentsPanel({ ticket, documents, onChanged }) {
                   <td className="px-4 py-3">
                     <a
                       href={`/api/tickets/${ticket.ref}/documents/${d.id}`}
-                      className="text-navy font-medium underline"
+                      className="text-dark font-medium underline"
                     >
                       {d.originalName}
                     </a>

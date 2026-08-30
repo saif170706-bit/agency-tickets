@@ -1,4 +1,4 @@
-// Opret den første medarbejder ud fra .env.local (SEED_NAME/SEED_USERNAME/SEED_PASSWORD).
+// Opret den første medarbejder ud fra .env.local (SEED_NAME/SEED_EMAIL/SEED_PASSWORD).
 // Kør med: npm run seed
 const fs = require("fs");
 const path = require("path");
@@ -27,29 +27,34 @@ function loadEnvLocal() {
 
 loadEnvLocal();
 
-const { createEmployee, getEmployeeByUsername } = require("../lib/employees");
-const { mutate } = require("../lib/db");
+const { createEmployee, getEmployeeByEmail, updateEmployee } = require("../lib/employees");
 
 async function main() {
-  const name = process.env.SEED_NAME || "Admin";
-  const username = process.env.SEED_USERNAME || "admin";
-  const password = process.env.SEED_PASSWORD || "skift-mig";
+  const name = process.env.SEED_NAME || "Saif Aldin";
+  const email = process.env.SEED_EMAIL || "Saifaldin@buildone.dk";
+  const password = process.env.SEED_PASSWORD || null; // null = første-login
 
-  const passwordHash = await bcrypt.hash(password, 10);
-  const existing = getEmployeeByUsername(username);
+  const passwordHash = password ? await bcrypt.hash(password, 10) : null;
+  const existing = getEmployeeByEmail(email);
 
   if (existing) {
-    mutate((db) => {
-      const emp = db.employees.find((e) => e.id === existing.id);
-      emp.name = name;
-      emp.passwordHash = passwordHash;
+    updateEmployee(existing.id, {
+      name,
+      email,
+      rolle: "superadmin",
+      ...(passwordHash !== null ? { passwordHash } : {}),
     });
-    console.log(`Opdaterede medarbejder "${username}" med nyt navn/adgangskode.`);
+    console.log(`Opdaterede medarbejder "${email}" (superadmin).`);
   } else {
-    createEmployee({ name, username, passwordHash });
-    console.log(`Oprettede medarbejder "${username}".`);
+    createEmployee({ name, email, passwordHash, rolle: "superadmin" });
+    console.log(`Oprettede medarbejder "${email}" som superadmin.`);
   }
-  console.log(`Login med brugernavn: ${username}`);
+
+  if (!passwordHash) {
+    console.log(`Første-login: gå til /login og log ind med e-mail "${email}" (lad password-feltet stå tomt).`);
+  } else {
+    console.log(`Login med e-mail: ${email}`);
+  }
 }
 
 main().catch((err) => {

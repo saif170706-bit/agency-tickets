@@ -11,7 +11,7 @@ function StatusPillMini({ label }) {
 export default function LogPanel({ logs }) {
   return (
     <div>
-      <h2 className="font-serif text-lg text-navy mb-4">Aktivitetslog</h2>
+      <h2 className="font-sans text-lg text-dark mb-4">Aktivitetslog</h2>
       {logs.length === 0 ? (
         <p className="text-muted text-sm">Ingen aktivitet endnu.</p>
       ) : (
@@ -25,11 +25,11 @@ export default function LogPanel({ logs }) {
               </div>
               <div>
                 {l.meta?.type === "status" ? (
-                  <p className="text-sm text-navy flex items-center gap-2 flex-wrap">
+                  <p className="text-sm text-dark flex items-center gap-2 flex-wrap">
                     Ændrede status fra <StatusPillMini label={l.meta.from} /> til <StatusPillMini label={l.meta.to} />
                   </p>
                 ) : (
-                  <p className="text-sm text-navy">{l.text}</p>
+                  <p className="text-sm text-dark">{l.text}</p>
                 )}
                 <p className="text-xs text-accent mt-1">{l.employeeName}</p>
               </div>

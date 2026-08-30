@@ -14,13 +14,13 @@ function TicketListItem({ t, active, onClick }) {
       }`}
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="font-serif text-navy text-[0.98rem] truncate">{t.customer.name}</span>
+        <span className="font-sans text-dark text-[0.98rem] truncate">{t.customer.name}</span>
       </div>
       <div className="text-xs text-muted mb-1">
         {t.type === "build" ? "Byggeri" : "Support"} · {t.ref}
         {t.isClosed && " · Lukket"}
       </div>
-      <div className="text-sm text-navy font-medium truncate mb-1">{t.title}</div>
+      <div className="text-sm text-dark font-medium truncate mb-1">{t.title}</div>
       <div className="text-xs text-accent">{t.statusLabel}</div>
     </button>
   );
@@ -112,7 +112,7 @@ export default function WorkspaceClient() {
         {query ? (
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-bgalt">
             <span className="text-xs text-muted truncate">Søgning: “{query}”</span>
-            <Link href="/workspace" className="text-xs text-navy underline shrink-0 ml-2">
+            <Link href="/workspace" className="text-xs text-dark underline shrink-0 ml-2">
               Ryd
             </Link>
           </div>
@@ -124,7 +124,7 @@ export default function WorkspaceClient() {
                 setSelectedRef(null);
               }}
               className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wide ${
-                view === "active" ? "text-navy border-b-2 border-navy" : "text-muted"
+                view === "active" ? "text-dark border-b-2 border-dark" : "text-muted"
               }`}
             >
               Aktive
@@ -135,7 +135,7 @@ export default function WorkspaceClient() {
                 setSelectedRef(null);
               }}
               className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wide ${
-                view === "archived" ? "text-navy border-b-2 border-navy" : "text-muted"
+                view === "archived" ? "text-dark border-b-2 border-dark" : "text-muted"
               }`}
             >
               Lukkede

@@ -39,9 +39,9 @@ export default function TicketTabs({ ticket, notes, secretNotes, logs, documents
           <div className="space-y-8">
             {ticket.description && (
               <div>
-                <h2 className="font-serif text-lg text-navy mb-3">Beskrivelse</h2>
+                <h2 className="font-sans text-lg text-dark mb-3">Beskrivelse</h2>
                 <div className="panel">
-                  <p className="text-sm text-navy whitespace-pre-wrap">{ticket.description}</p>
+                  <p className="text-sm text-dark whitespace-pre-wrap">{ticket.description}</p>
                 </div>
               </div>
             )}

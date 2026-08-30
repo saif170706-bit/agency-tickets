@@ -1,19 +1,30 @@
 import { NextResponse } from "next/server";
-import { getEmployeeByUsername } from "../../../lib/employees";
+import { getEmployeeByEmail } from "../../../lib/employees";
 import { verifyPassword, makeSessionCookie, COOKIE_NAME } from "../../../lib/auth";
 
 export async function POST(request) {
-  const { username, password } = await request.json();
-  if (!username || !password) {
-    return NextResponse.json({ error: "Udfyld brugernavn og adgangskode." }, { status: 400 });
+  const { email, password } = await request.json();
+  if (!email) {
+    return NextResponse.json({ error: "Udfyld e-mail." }, { status: 400 });
   }
-  const employee = getEmployeeByUsername(username);
+
+  const employee = getEmployeeByEmail(email);
   if (!employee) {
-    return NextResponse.json({ error: "Forkert brugernavn eller adgangskode." }, { status: 401 });
+    return NextResponse.json({ error: "Forkert e-mail eller adgangskode." }, { status: 401 });
   }
+
+  // Første-login: ingen adgangskode sat endnu → send til set-password
+  if (!employee.passwordHash) {
+    return NextResponse.json({ firstLogin: true, employeeId: employee.id }, { status: 200 });
+  }
+
+  if (!password) {
+    return NextResponse.json({ error: "Udfyld adgangskode." }, { status: 400 });
+  }
+
   const ok = await verifyPassword(password, employee.passwordHash);
   if (!ok) {
-    return NextResponse.json({ error: "Forkert brugernavn eller adgangskode." }, { status: 401 });
+    return NextResponse.json({ error: "Forkert e-mail eller adgangskode." }, { status: 401 });
   }
 
   const res = NextResponse.json({ ok: true });

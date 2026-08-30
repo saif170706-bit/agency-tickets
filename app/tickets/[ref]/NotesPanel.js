@@ -29,11 +29,11 @@ export default function NotesPanel({ ticket, notes, onChanged }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-serif text-lg text-navy">
+        <h2 className="font-sans text-lg text-dark">
           Interne noter <span className="text-accent text-sm font-sans">{notes.length}</span>
         </h2>
         {notes.length > 1 && (
-          <button onClick={() => setExpanded((v) => !v)} className="text-xs text-navy underline">
+          <button onClick={() => setExpanded((v) => !v)} className="text-xs text-dark underline">
             {expanded ? "Vis færre" : "Vis alle"}
           </button>
         )}
@@ -60,7 +60,7 @@ export default function NotesPanel({ ticket, notes, onChanged }) {
         <div className="space-y-3">
           {visible.map((n) => (
             <div key={n.id} className="panel !bg-[#f5f1e2]">
-              <p className="text-sm text-navy whitespace-pre-wrap">{n.body}</p>
+              <p className="text-sm text-dark whitespace-pre-wrap">{n.body}</p>
               <p className="text-xs text-muted mt-2">
                 {new Date(n.createdAt).toLocaleDateString("da-DK")} kl.{" "}
                 {new Date(n.createdAt).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })} af{" "}

@@ -54,7 +54,7 @@ export default function StatusControl({ ticket, onChanged }) {
   if (ticket.type === "support") {
     return (
       <div>
-        <h2 className="font-serif text-lg text-navy mb-3">Status</h2>
+        <h2 className="font-sans text-lg text-dark mb-3">Status</h2>
         <div className="panel space-y-2">
           {SUPPORT_STATUSES.map((s) => (
             <button
@@ -63,8 +63,8 @@ export default function StatusControl({ ticket, onChanged }) {
               onClick={() => setSupportStatus(s)}
               className={`w-full text-left px-4 py-3 rounded-md text-sm transition-colors ${
                 ticket.statusLabel === s
-                  ? "bg-navy text-white"
-                  : "bg-white text-navy border border-border hover:border-navy"
+                  ? "bg-dark text-white"
+                  : "bg-white text-dark border border-border hover:border-dark"
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {s}
@@ -77,7 +77,7 @@ export default function StatusControl({ ticket, onChanged }) {
 
   return (
     <div>
-      <h2 className="font-serif text-lg text-navy mb-3">Status-roadmap</h2>
+      <h2 className="font-sans text-lg text-dark mb-3">Status-roadmap</h2>
       <div className="panel space-y-2">
         {ticket.roadmap.map((step, i) => {
           const isCurrent = step.id === ticket.currentStepId;
@@ -88,9 +88,9 @@ export default function StatusControl({ ticket, onChanged }) {
               onClick={() => setCurrentStep(step.id)}
               className={`w-full flex items-center gap-3 text-left px-4 py-3 rounded-md text-sm transition-colors ${
                 isCurrent
-                  ? "bg-navy text-white"
+                  ? "bg-dark text-white"
                   : step.done
-                  ? "bg-white text-navy border border-border"
+                  ? "bg-white text-dark border border-border"
                   : "bg-white text-muted border border-border"
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >

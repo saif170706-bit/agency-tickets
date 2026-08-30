@@ -5,73 +5,70 @@ import { useRouter } from "next/navigation";
 
 const DEFAULT_ROADMAP = ["Opstartet", "I design", "I udvikling", "Klar til gennemsyn", "Live"];
 
-export default function NewTicketForm() {
+export default function NewTicketForm({ kunde = null }) {
   const router = useRouter();
-  const [type, setType] = useState("support");
-  const [title, setTitle] = useState("");
+  const fromKunde = !!kunde;
+
+  const [type, setType] = useState("build");
+  const [title, setTitle] = useState(fromKunde ? `Hjemmeside til ${kunde.navn}` : "");
   const [description, setDescription] = useState("");
+  const [roadmap, setRoadmap] = useState(DEFAULT_ROADMAP);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Bruges kun ved manuel oprettelse (uden kundeprofil)
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [cvr, setCvr] = useState("");
-  const [roadmap, setRoadmap] = useState(DEFAULT_ROADMAP);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  function updateStep(i, value) {
-    setRoadmap((r) => r.map((s, idx) => (idx === i ? value : s)));
-  }
-  function addStep() {
-    setRoadmap((r) => [...r, ""]);
-  }
-  function removeStep(i) {
-    setRoadmap((r) => r.filter((_, idx) => idx !== i));
-  }
+  function updateStep(i, value) { setRoadmap((r) => r.map((s, idx) => idx === i ? value : s)); }
+  function addStep() { setRoadmap((r) => [...r, ""]); }
+  function removeStep(i) { setRoadmap((r) => r.filter((_, idx) => idx !== i)); }
 
   async function onSubmit(e) {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    setError(""); setLoading(true);
+
+    const body = {
+      type,
+      title,
+      description,
+      roadmap: type === "build" ? roadmap.filter((s) => s.trim()) : undefined,
+    };
+
+    if (fromKunde) {
+      body.kundeId = kunde.id;
+    } else {
+      body.customer = { name, phone, email, address, cvr };
+    }
+
     const res = await fetch("/api/tickets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type,
-        title,
-        description,
-        customer: { name, phone, email, address, cvr },
-        roadmap: type === "build" ? roadmap.filter((s) => s.trim()) : undefined,
-      }),
+      body: JSON.stringify(body),
     });
     setLoading(false);
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setError(data.error || "Der skete en fejl.");
-      return;
-    }
+    if (!res.ok) { setError(data.error || "Der skete en fejl."); return; }
     router.push(`/tickets/${data.ref}`);
   }
 
   return (
-    <form onSubmit={onSubmit} className="max-w-2xl">
+    <form onSubmit={onSubmit}>
+      {/* Sagstype */}
       <div className="mb-8">
         <span className="label">Sagstype</span>
         <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => setType("support")}
-            className={`flex-1 card p-4 text-left ${type === "support" ? "border-navy border-2" : ""}`}
-          >
-            <div className="font-semibold text-navy text-sm mb-1">Support / rettelse</div>
+          <button type="button" onClick={() => setType("support")}
+            className={`flex-1 card p-4 text-left ${type === "support" ? "border-dark border-2" : ""}`}>
+            <div className="font-semibold text-dark text-sm mb-1">Support / rettelse</div>
             <div className="text-xs text-muted">Ændring eller fejl på en eksisterende side</div>
           </button>
-          <button
-            type="button"
-            onClick={() => setType("build")}
-            className={`flex-1 card p-4 text-left ${type === "build" ? "border-navy border-2" : ""}`}
-          >
-            <div className="font-semibold text-navy text-sm mb-1">Nyt hjemmesidebyggeri</div>
+          <button type="button" onClick={() => setType("build")}
+            className={`flex-1 card p-4 text-left ${type === "build" ? "border-dark border-2" : ""}`}>
+            <div className="font-semibold text-dark text-sm mb-1">Nyt hjemmesidebyggeri</div>
             <div className="text-xs text-muted">Egen status-roadmap som kunden kan følge</div>
           </button>
         </div>
@@ -83,59 +80,69 @@ export default function NewTicketForm() {
       </div>
       <div className="mb-8">
         <label className="label" htmlFor="description">Beskrivelse</label>
-        <textarea
-          id="description"
-          className="input"
-          rows={4}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+        <textarea id="description" className="input" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
 
-      <h2 className="font-serif text-lg text-navy mb-4">Kundeoplysninger</h2>
-      <div className="grid grid-cols-2 gap-4 mb-5">
-        <div>
-          <label className="label" htmlFor="name">Fulde navn</label>
-          <input id="name" className="input" value={name} onChange={(e) => setName(e.target.value)} required />
+      {/* Kundeoplysninger — vises kun ved manuel oprettelse */}
+      {fromKunde ? (
+        <div className="card mb-8 p-5" style={{ background: "#f0f8f9", border: "1px solid #cde4e6" }}>
+          <div style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "#5a7a7d", marginBottom: "10px" }}>
+            Kunde — {kunde.navn}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "0.82rem", color: "#003135" }}>
+            <div><span style={{ color: "#5a7a7d" }}>Kontakt: </span>{kunde.kontaktperson || kunde.navn}</div>
+            <div><span style={{ color: "#5a7a7d" }}>Tlf: </span>{kunde.telefon || <span style={{ color: "#8c2f2f" }}>Mangler!</span>}</div>
+            <div><span style={{ color: "#5a7a7d" }}>E-mail: </span>{kunde.email || <span style={{ color: "#8c2f2f" }}>Mangler!</span>}</div>
+            {kunde.cvrNummer && <div><span style={{ color: "#5a7a7d" }}>CVR: </span>{kunde.cvrNummer}</div>}
+          </div>
+          {(!kunde.telefon || !kunde.email) && (
+            <p style={{ color: "#8c2f2f", fontSize: "0.78rem", marginTop: "10px" }}>
+              ⚠ Opdater kundens profil med telefon og e-mail inden du opretter sagen.
+            </p>
+          )}
         </div>
-        <div>
-          <label className="label" htmlFor="phone">Telefonnummer</label>
-          <input id="phone" className="input" value={phone} onChange={(e) => setPhone(e.target.value)} required />
-        </div>
-      </div>
-      <div className="mb-5">
-        <label className="label" htmlFor="email">E-mail</label>
-        <input id="email" type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      </div>
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div>
-          <label className="label" htmlFor="address">Adresse (valgfri)</label>
-          <input id="address" className="input" value={address} onChange={(e) => setAddress(e.target.value)} />
-        </div>
-        <div>
-          <label className="label" htmlFor="cvr">CVR-nummer (valgfri)</label>
-          <input id="cvr" className="input" value={cvr} onChange={(e) => setCvr(e.target.value)} />
-        </div>
-      </div>
+      ) : (
+        <>
+          <h2 className="font-sans text-lg text-dark mb-4">Kundeoplysninger</h2>
+          <div className="grid grid-cols-2 gap-4 mb-5">
+            <div>
+              <label className="label" htmlFor="name">Fulde navn</label>
+              <input id="name" className="input" value={name} onChange={(e) => setName(e.target.value)} required />
+            </div>
+            <div>
+              <label className="label" htmlFor="phone">Telefonnummer *</label>
+              <input id="phone" className="input" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+            </div>
+          </div>
+          <div className="mb-5">
+            <label className="label" htmlFor="email">E-mail *</label>
+            <input id="email" type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div>
+              <label className="label" htmlFor="address">Adresse (valgfri)</label>
+              <input id="address" className="input" value={address} onChange={(e) => setAddress(e.target.value)} />
+            </div>
+            <div>
+              <label className="label" htmlFor="cvr">CVR-nummer (valgfri)</label>
+              <input id="cvr" className="input" value={cvr} onChange={(e) => setCvr(e.target.value)} />
+            </div>
+          </div>
+        </>
+      )}
 
+      {/* Roadmap */}
       {type === "build" && (
         <div className="mb-8">
-          <h2 className="font-serif text-lg text-navy mb-2">Status-roadmap</h2>
+          <h2 className="font-sans text-lg text-dark mb-2">Status-roadmap</h2>
           <p className="text-sm text-muted mb-4">
-            Disse trin vises for kunden på deres statusside. Du kan tilføje eller fjerne trin.
+            Disse trin vises for kunden på deres statusside.
           </p>
           <div className="space-y-2">
             {roadmap.map((step, i) => (
               <div key={i} className="flex gap-2">
-                <input
-                  className="input"
-                  value={step}
-                  onChange={(e) => updateStep(i, e.target.value)}
-                  placeholder={`Trin ${i + 1}`}
-                />
-                <button type="button" onClick={() => removeStep(i)} className="btn btn-outline !px-3">
-                  ✕
-                </button>
+                <input className="input" value={step} onChange={(e) => updateStep(i, e.target.value)} placeholder={`Trin ${i + 1}`} />
+                <button type="button" onClick={() => removeStep(i)} className="btn btn-outline !px-3">✕</button>
               </div>
             ))}
           </div>
@@ -147,7 +154,7 @@ export default function NewTicketForm() {
 
       {error && <p className="text-danger text-sm mb-5">{error}</p>}
       <button className="btn btn-primary" type="submit" disabled={loading}>
-        {loading ? "Opretter…" : "Opret sag og send besked til kunden"}
+        {loading ? "Opretter…" : "Opret sag"}
       </button>
     </form>
   );
