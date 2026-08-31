@@ -17,6 +17,11 @@ const ALL_LINKS = [
   { id: "salg", href: "/salg", label: "Salg" },
 ];
 
+// Indbakke vises altid — uanset mode
+const ALWAYS_LINKS = [
+  { id: "indbakke", href: "/indbakke", label: "Indbakke" },
+];
+
 function readMode() {
   try { return localStorage.getItem("nordlys_mode") || "alt"; } catch { return "alt"; }
 }
@@ -38,6 +43,10 @@ export default function NavLinks({ superadmin }) {
   return (
     <>
       {visible.map((l) => (
+        <Link key={l.id} href={l.href} className="nav-link">{l.label}</Link>
+      ))}
+      {/* Indbakke vises altid — uanset mode */}
+      {ALWAYS_LINKS.map((l) => (
         <Link key={l.id} href={l.href} className="nav-link">{l.label}</Link>
       ))}
       {/* Admin vises KUN til superadmin, uanset mode */}
