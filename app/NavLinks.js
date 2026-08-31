@@ -38,7 +38,7 @@ export default function NavLinks({ superadmin }) {
     return () => window.removeEventListener("nordlys_mode_change", handler);
   }, []);
 
-  // Poll antal nye henvendelser hvert 30 sek
+  // Poll antal nye henvendelser hvert 30 sek + opdater straks ved læsning
   useEffect(() => {
     async function fetchCount() {
       try {
@@ -50,7 +50,11 @@ export default function NavLinks({ superadmin }) {
     }
     fetchCount();
     const interval = setInterval(fetchCount, 30_000);
-    return () => clearInterval(interval);
+    window.addEventListener("indbakke_update", fetchCount);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("indbakke_update", fetchCount);
+    };
   }, []);
 
   const allowed = MODE_LINKS[mode] || MODE_LINKS["alt"];

@@ -28,6 +28,8 @@ function InquiryCard({ inquiry, onStatusChange }) {
         body: JSON.stringify({ status }),
       });
       onStatusChange(inquiry.id, status);
+      // Opdater nav-badge med det samme
+      window.dispatchEvent(new Event("indbakke_update"));
     } catch (e) {
       alert("Kunne ikke opdatere status");
     } finally {
