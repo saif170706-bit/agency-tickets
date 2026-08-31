@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 // Offentlige stier der IKKE kræver medarbejder-login
-const PUBLIC_PATHS = ["/login", "/api/login"];
+const PUBLIC_PATHS = ["/login", "/api/login", "/set-password", "/api/set-password"];
 
 function isPublic(pathname) {
   if (PUBLIC_PATHS.includes(pathname)) return true;
