@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 const STATUS_LABEL = { ny: "Ny", set: "Set", arkiveret: "Arkiveret" };
@@ -180,6 +180,31 @@ function InquiryCard({ inquiry, onStatusChange }) {
 export default function IndbakkeClient({ initialInquiries }) {
   const [inquiries, setInquiries] = useState(initialInquiries);
   const [filter, setFilter] = useState("aktive"); // "aktive" | "alle"
+  const [lastPoll, setLastPoll] = useState(null);
+  const knownIds = useRef(new Set(initialInquiries.map((i) => i.id)));
+
+  // Poll hvert 30 sekunder for nye henvendelser
+  useEffect(() => {
+    async function poll() {
+      try {
+        const res = await fetch("/api/inquiries");
+        if (!res.ok) return;
+        const fresh = await res.json();
+        setInquiries((prev) => {
+          // Tilføj nye — bevar lokale statusændringer på eksisterende
+          const prevMap = new Map(prev.map((i) => [i.id, i]));
+          const merged = fresh.map((i) => prevMap.get(i.id) || i);
+          // Tjek om der er nye (til at opdatere lastPoll-indikator)
+          const hasNew = fresh.some((i) => !knownIds.current.has(i.id));
+          fresh.forEach((i) => knownIds.current.add(i.id));
+          if (hasNew) setLastPoll(new Date());
+          return merged;
+        });
+      } catch {}
+    }
+    const interval = setInterval(poll, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   function handleStatusChange(id, status) {
     setInquiries((prev) =>
