@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
-import { getTicketByRef } from "@/lib/tickets";
-import { sendManualSms } from "@/lib/notify";
+import { getCurrentEmployee } from "../../../../../lib/session";
+import { getTicketByRef } from "../../../../../lib/tickets";
+import { sendManualSms } from "../../../../../lib/notify";
 
 export async function POST(request, { params }) {
-  const session = await getSession(request);
-  if (!session) return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
+  const employee = getCurrentEmployee();
+  if (!employee) return NextResponse.json({ error: "Ikke autoriseret" }, { status: 401 });
 
   const { ref } = params;
   const { text } = await request.json();

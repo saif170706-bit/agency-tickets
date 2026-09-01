@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getTemplate, TYPE_LABELS, ALL_TYPES, SMS_MAX_CHARS } from "@/lib/smsTemplates";
+import { getTemplate, TYPE_LABELS, ALL_TYPES, SMS_MAX_CHARS } from "../../../lib/smsTemplates";
 
 // Kald tracking-url fra env (samme logik som notify.js)
 function buildTrackingUrl(ref) {
