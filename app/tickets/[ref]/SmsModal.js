@@ -5,8 +5,8 @@ import { getTemplate, TYPE_LABELS, ALL_TYPES, SMS_MAX_CHARS } from "../../../lib
 
 // Kald tracking-url fra env (samme logik som notify.js)
 function buildTrackingUrl(ref) {
-  const base = (process.env.NEXT_PUBLIC_BASE_URL || "https://buildone.dk").replace(/\/$/, "");
-  return `${base}/tracking/${ref}`;
+  const base = (process.env.NEXT_PUBLIC_BASE_URL || "https://track.buildone.dk").replace(/\/$/, "");
+  return `${base}/${ref}`;
 }
 
 export default function SmsModal({ ticket, stage, onClose }) {
