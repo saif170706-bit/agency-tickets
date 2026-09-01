@@ -5,11 +5,21 @@ import { useRouter } from "next/navigation";
 
 const DEFAULT_ROADMAP = ["Opstartet", "I design", "I udvikling", "Klar til gennemsyn", "Live"];
 
+// Typer med roadmap
+const ROADMAP_TYPES = ["byggeri", "opdatering", "build"];
+
+const TICKET_TYPES = [
+  { value: "support",         label: "Support / rettelse",        desc: "Fejl eller ændring på eksisterende side" },
+  { value: "vedligeholdelse", label: "Vedligeholdelse",           desc: "Løbende vedligeholdelse og opdateringer" },
+  { value: "byggeri",         label: "Nyt hjemmesidebyggeri",     desc: "Ny hjemmeside med roadmap kunden kan følge" },
+  { value: "opdatering",      label: "Hjemmeside opdatering",     desc: "Større redesign eller opdatering af eksisterende side" },
+];
+
 export default function NewTicketForm({ kunde = null }) {
   const router = useRouter();
   const fromKunde = !!kunde;
 
-  const [type, setType] = useState("build");
+  const [type, setType] = useState("byggeri");
   const [title, setTitle] = useState(fromKunde ? `Hjemmeside til ${kunde.navn}` : "");
   const [description, setDescription] = useState("");
   const [roadmap, setRoadmap] = useState(DEFAULT_ROADMAP);
@@ -35,7 +45,7 @@ export default function NewTicketForm({ kunde = null }) {
       type,
       title,
       description,
-      roadmap: type === "build" ? roadmap.filter((s) => s.trim()) : undefined,
+      roadmap: ROADMAP_TYPES.includes(type) ? roadmap.filter((s) => s.trim()) : undefined,
     };
 
     if (fromKunde) {
@@ -60,17 +70,18 @@ export default function NewTicketForm({ kunde = null }) {
       {/* Sagstype */}
       <div className="mb-8">
         <span className="label">Sagstype</span>
-        <div className="flex gap-3">
-          <button type="button" onClick={() => setType("support")}
-            className={`flex-1 card p-4 text-left ${type === "support" ? "border-dark border-2" : ""}`}>
-            <div className="font-semibold text-dark text-sm mb-1">Support / rettelse</div>
-            <div className="text-xs text-muted">Ændring eller fejl på en eksisterende side</div>
-          </button>
-          <button type="button" onClick={() => setType("build")}
-            className={`flex-1 card p-4 text-left ${type === "build" ? "border-dark border-2" : ""}`}>
-            <div className="font-semibold text-dark text-sm mb-1">Nyt hjemmesidebyggeri</div>
-            <div className="text-xs text-muted">Egen status-roadmap som kunden kan følge</div>
-          </button>
+        <div className="grid grid-cols-2 gap-3">
+          {TICKET_TYPES.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => setType(t.value)}
+              className={`card p-4 text-left ${type === t.value ? "border-dark border-2" : ""}`}
+            >
+              <div className="font-semibold text-dark text-sm mb-1">{t.label}</div>
+              <div className="text-xs text-muted">{t.desc}</div>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -132,7 +143,7 @@ export default function NewTicketForm({ kunde = null }) {
       )}
 
       {/* Roadmap */}
-      {type === "build" && (
+      {ROADMAP_TYPES.includes(type) && (
         <div className="mb-8">
           <h2 className="font-sans text-lg text-dark mb-2">Status-roadmap</h2>
           <p className="text-sm text-muted mb-4">

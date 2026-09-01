@@ -4,6 +4,111 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+const SMS_MAX = 306; // ~2 SMS-segmenter
+
+// ---- Send SMS-panel ----
+function SendSmsPanel({ kunde, onClose }) {
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+
+  const charsLeft = SMS_MAX - text.length;
+  const overLimit = charsLeft < 0;
+  const hasPhone = !!kunde.telefon;
+
+  async function handleSend() {
+    if (!text.trim() || overLimit) return;
+    setSending(true); setError("");
+    try {
+      const res = await fetch(`/api/customers/${kunde.id}/sms`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Afsendelse fejlede");
+      setSent(true);
+      setTimeout(onClose, 1800);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div style={{ background: "#f0f8f9", border: "1px solid #cde4e6", borderRadius: "6px", padding: "16px", marginBottom: "16px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+        <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#003135" }}>
+          📱 Send SMS til {kunde.kontaktperson || kunde.navn}
+          {kunde.telefon && <span style={{ fontWeight: 400, color: "#5a7a7d", marginLeft: "6px" }}>({kunde.telefon})</span>}
+        </div>
+        <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#5a7a7d", fontSize: "1rem", lineHeight: 1 }}>✕</button>
+      </div>
+
+      {!hasPhone && (
+        <div style={{ background: "#fff3cd", border: "1px solid #ffc107", borderRadius: "4px", padding: "8px 12px", fontSize: "0.78rem", color: "#856404", marginBottom: "10px" }}>
+          ⚠ Kunden har intet telefonnummer — opdater profilen først.
+        </div>
+      )}
+
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={4}
+        placeholder="Skriv din besked her…"
+        disabled={!hasPhone}
+        style={{
+          width: "100%", boxSizing: "border-box",
+          padding: "10px 12px",
+          border: overLimit ? "1.5px solid #ef4444" : "1.5px solid #cde4e6",
+          borderRadius: "5px", fontSize: "0.88rem", lineHeight: 1.5,
+          fontFamily: "inherit", color: "#003135",
+          resize: "vertical", outline: "none",
+          background: hasPhone ? "#fff" : "#f5f5f5",
+        }}
+      />
+      <div style={{
+        textAlign: "right", fontSize: "0.72rem", marginTop: "2px",
+        color: overLimit ? "#ef4444" : charsLeft < 30 ? "#f59e0b" : "#5a7a7d",
+        fontWeight: overLimit ? 700 : 400,
+      }}>
+        {overLimit ? `${Math.abs(charsLeft)} tegn for mange` : `${charsLeft} tegn tilbage`}
+      </div>
+
+      {error && (
+        <div style={{ background: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "4px", padding: "8px 12px", fontSize: "0.78rem", color: "#991b1b", marginTop: "8px" }}>
+          {error}
+        </div>
+      )}
+      {sent && (
+        <div style={{ background: "#dcfce7", border: "1px solid #86efac", borderRadius: "4px", padding: "8px 12px", fontSize: "0.78rem", color: "#166534", marginTop: "8px", fontWeight: 600 }}>
+          ✓ SMS sendt til {kunde.telefon}
+        </div>
+      )}
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "10px" }}>
+        <button onClick={onClose} style={{ padding: "7px 16px", background: "none", border: "1.5px solid #cde4e6", color: "#5a7a7d", borderRadius: "4px", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+          Annuller
+        </button>
+        <button
+          onClick={handleSend}
+          disabled={sending || overLimit || !hasPhone || sent || !text.trim()}
+          style={{
+            padding: "7px 18px", background: "#003135", color: "#fff",
+            border: "none", borderRadius: "4px", fontSize: "0.8rem", fontWeight: 700,
+            cursor: "pointer", fontFamily: "inherit",
+            opacity: (sending || overLimit || !hasPhone || sent || !text.trim()) ? 0.5 : 1,
+          }}
+        >
+          {sending ? "Sender…" : "Send SMS"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ---- Slet-modal ----
 function SletModal({ kunde, sagCount, onClose }) {
   const router = useRouter();
@@ -327,6 +432,7 @@ export default function KundeProfilClient({ mode, kundeId, kunde, tickets, emplo
   const [tab, setTab] = useState("oversigt");
   const [sletModal, setSletModal] = useState(false);
   const [redigerer, setRedigerer] = useState(false);
+  const [sendSms, setSendSms] = useState(false);
 
   if (mode === "aktiver-btn") return <AktiverBtn kundeId={kundeId} />;
 
@@ -339,31 +445,52 @@ export default function KundeProfilClient({ mode, kundeId, kunde, tickets, emplo
 
   return (
     <div>
-      {/* Handlingsknapper (superadmin) */}
-      {isSuperadmin && (
-        <div style={{ display: "flex", gap: "8px", marginBottom: "16px", justifyContent: "flex-end" }}>
-          <button
-            onClick={() => setRedigerer(r => !r)}
-            style={{
-              padding: "7px 14px", fontSize: "0.8rem", fontWeight: 600,
-              background: redigerer ? "#e4f1f2" : "#f0f8f9",
-              color: "#003135", border: "1px solid #cde4e6",
-              borderRadius: "3px", cursor: "pointer",
-            }}
-          >
-            {redigerer ? "✕ Annuller" : "✏️ Rediger profil"}
-          </button>
-          <button
-            onClick={() => setSletModal(true)}
-            style={{
-              padding: "7px 14px", fontSize: "0.8rem", fontWeight: 600,
-              background: "#fff5f5", color: "#8c2f2f",
-              border: "1px solid #f0c5c5", borderRadius: "3px", cursor: "pointer",
-            }}
-          >
-            🗑 Slet kunde
-          </button>
-        </div>
+      {/* Handlingsknapper */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+        {/* Send SMS — alle medarbejdere */}
+        <button
+          onClick={() => { setSendSms(s => !s); setRedigerer(false); }}
+          style={{
+            padding: "7px 14px", fontSize: "0.8rem", fontWeight: 600,
+            background: sendSms ? "#e4f1f2" : "#f0f8f9",
+            color: "#003135", border: "1px solid #cde4e6",
+            borderRadius: "3px", cursor: "pointer",
+          }}
+        >
+          {sendSms ? "✕ Luk SMS" : "📱 Send SMS"}
+        </button>
+
+        {/* Superadmin: Rediger + Slet */}
+        {isSuperadmin && (
+          <>
+            <button
+              onClick={() => { setRedigerer(r => !r); setSendSms(false); }}
+              style={{
+                padding: "7px 14px", fontSize: "0.8rem", fontWeight: 600,
+                background: redigerer ? "#e4f1f2" : "#f0f8f9",
+                color: "#003135", border: "1px solid #cde4e6",
+                borderRadius: "3px", cursor: "pointer",
+              }}
+            >
+              {redigerer ? "✕ Annuller" : "✏️ Rediger profil"}
+            </button>
+            <button
+              onClick={() => setSletModal(true)}
+              style={{
+                padding: "7px 14px", fontSize: "0.8rem", fontWeight: 600,
+                background: "#fff5f5", color: "#8c2f2f",
+                border: "1px solid #f0c5c5", borderRadius: "3px", cursor: "pointer",
+              }}
+            >
+              🗑 Slet kunde
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* SMS-panel (inline, over tabs) */}
+      {sendSms && (
+        <SendSmsPanel kunde={kunde} onClose={() => setSendSms(false)} />
       )}
 
       {/* Rediger-form (inline, over tabs) */}

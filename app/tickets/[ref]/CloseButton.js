@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import SmsModal from "./SmsModal";
 
 export default function CloseButton({ ticket, onChanged }) {
   const router = useRouter();
   const refresh = onChanged || (() => router.refresh());
   const [loading, setLoading] = useState(false);
+  const [showSms, setShowSms] = useState(false);
 
   async function act(reopen) {
     if (!reopen && !confirm("Luk sagen? Alle hemmelige noter slettes automatisk.")) return;
@@ -18,18 +20,26 @@ export default function CloseButton({ ticket, onChanged }) {
     });
     setLoading(false);
     refresh();
+
+    // Vis SMS-modal kun ved lukning (ikke ved genåbning)
+    if (!reopen) setShowSms(true);
   }
 
-  if (ticket.isClosed) {
-    return (
-      <button className="btn btn-outline" disabled={loading} onClick={() => act(true)}>
-        Genåbn sag
-      </button>
-    );
-  }
   return (
-    <button className="btn btn-danger" disabled={loading} onClick={() => act(false)}>
-      Luk sag
-    </button>
+    <>
+      {ticket.isClosed ? (
+        <button className="btn btn-outline" disabled={loading} onClick={() => act(true)}>
+          Genåbn sag
+        </button>
+      ) : (
+        <button className="btn btn-danger" disabled={loading} onClick={() => act(false)}>
+          Luk sag
+        </button>
+      )}
+
+      {showSms && (
+        <SmsModal ticket={ticket} stage="lukket" onClose={() => setShowSms(false)} />
+      )}
+    </>
   );
 }

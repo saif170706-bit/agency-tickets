@@ -37,7 +37,7 @@ export default function TicketDetailView({ ticket, notes, secretNotes, logs, doc
               {ticket.isClosed ? "Lukket" : ticket.statusLabel}
             </span>
           </div>
-          <InfoRow label="Type" value={ticket.type === "build" ? "Nyt hjemmesidebyggeri" : "Support / rettelse"} />
+          <InfoRow label="Type" value={{ build: "Hjemmeside byggeri", byggeri: "Hjemmeside byggeri", opdatering: "Hjemmeside opdatering", support: "Support / rettelse", vedligeholdelse: "Vedligeholdelse" }[ticket.type] || ticket.type} />
           <InfoRow label="Oprettet" value={new Date(ticket.createdAt).toLocaleString("da-DK")} />
           <InfoRow label="Kundens statusside" value="Åbn link" href={trackingUrl} />
           <div className="pt-4">
