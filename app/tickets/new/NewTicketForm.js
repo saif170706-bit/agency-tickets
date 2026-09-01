@@ -71,17 +71,47 @@ export default function NewTicketForm({ kunde = null }) {
       <div className="mb-8">
         <span className="label">Sagstype</span>
         <div className="grid grid-cols-2 gap-3">
-          {TICKET_TYPES.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => setType(t.value)}
-              className={`card p-4 text-left ${type === t.value ? "border-dark border-2" : ""}`}
-            >
-              <div className="font-semibold text-dark text-sm mb-1">{t.label}</div>
-              <div className="text-xs text-muted">{t.desc}</div>
-            </button>
-          ))}
+          {TICKET_TYPES.map((t) => {
+            const selected = type === t.value;
+            return (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => setType(t.value)}
+                style={{
+                  textAlign: "left",
+                  borderRadius: "8px",
+                  padding: "16px",
+                  border: selected ? "2px solid #003135" : "2px solid #cde4e6",
+                  background: selected ? "#003135" : "#fff",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  position: "relative",
+                  fontFamily: "inherit",
+                }}
+              >
+                {selected && (
+                  <span style={{
+                    position: "absolute", top: "10px", right: "12px",
+                    background: "#24d9a4", color: "#003135",
+                    borderRadius: "50%", width: "20px", height: "20px",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "0.7rem", fontWeight: 900,
+                  }}>✓</span>
+                )}
+                <div style={{
+                  fontWeight: 700,
+                  fontSize: "0.88rem",
+                  marginBottom: "4px",
+                  color: selected ? "#fff" : "#003135",
+                }}>{t.label}</div>
+                <div style={{
+                  fontSize: "0.75rem",
+                  color: selected ? "rgba(255,255,255,0.7)" : "#5a7a7d",
+                }}>{t.desc}</div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
