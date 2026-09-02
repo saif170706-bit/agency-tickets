@@ -61,12 +61,6 @@ export default function TrackingPage({ params }) {
 
       <main style={{ maxWidth: 560, margin: "0 auto", padding: "32px 20px 60px" }}>
 
-        {/* Firma + sagsnummer */}
-        <div style={{ marginBottom: 24 }}>
-          <p style={{ margin: "0 0 4px", fontSize: 13, color: "#6b8a8c", fontWeight: 500 }}>{COMPANY_NAME}</p>
-          <p style={{ margin: 0, fontSize: 12, color: "#9db3b5", letterSpacing: "0.04em" }}>Sag {ticket.ref}</p>
-        </div>
-
         {/* Status banner — ren og professionel */}
         <div style={{
           background: "#fff",
