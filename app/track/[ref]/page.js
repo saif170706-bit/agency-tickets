@@ -131,7 +131,7 @@ export default function TrackingPage({ params }) {
                       <p style={{ margin: "3px 0 0", fontSize: 12, color: "#24d9a4", fontWeight: 700 }}>Vi er her nu</p>
                     )}
                     {/* Sub-trin hierarkisk under "i gang"-trinnet */}
-                    {isCurrent && !isRoadmap && ticket.subSteps?.length > 0 && (
+                    {label === "Arbejde på henvendelse er i gang" && !isRoadmap && !ticket.isClosed && ticket.subSteps?.length > 0 && (
                       <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
                         {ticket.subSteps.map((step) => (
                           <div key={step.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>

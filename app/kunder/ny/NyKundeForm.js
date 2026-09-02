@@ -69,7 +69,7 @@ export default function NyKundeForm({ prefill = {} }) {
         title: `Hjemmeside til ${navn}`,
         description: sagBeskrivelse || `Nyt hjemmesidebyggeri for ${navn}.`,
         kundeId,
-        roadmap: ["Opstartet", "I design", "I udvikling", "Klar til gennemsyn", "Live"],
+        roadmap: ["Opstartet", "I design", "I udvikling", "Klar til gennemsyn"],
       }),
     }).catch(() => {});
 
