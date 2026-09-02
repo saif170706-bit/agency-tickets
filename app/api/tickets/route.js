@@ -21,7 +21,7 @@ export async function POST(request) {
   const body = await request.json();
   const { type, title, description, customer: manualCustomer, roadmap, kundeId } = body;
 
-  if (!type || !["build", "support"].includes(type)) {
+  if (!type || !["build", "support", "vedligeholdelse", "byggeri", "opdatering"].includes(type)) {
     return NextResponse.json({ error: "Vælg sagstype" }, { status: 400 });
   }
   if (!title || !title.trim()) {
