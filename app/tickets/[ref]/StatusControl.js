@@ -91,25 +91,27 @@ export default function StatusControl({ ticket, onChanged }) {
           <h2 className="font-sans text-lg text-dark mb-3">Status</h2>
           <div className="panel space-y-2">
             {SUPPORT_STATUSES.map((s) => (
-              <button
-                key={s}
-                disabled={loading || ticket.isClosed}
-                onClick={() => setSupportStatus(s)}
-                className={`w-full text-left px-4 py-3 rounded-md text-sm transition-colors ${
-                  ticket.statusLabel === s
-                    ? "bg-dark text-white"
-                    : "bg-white text-dark border border-border hover:border-dark"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {s}
-              </button>
+              <div key={s}>
+                <button
+                  disabled={loading || ticket.isClosed}
+                  onClick={() => setSupportStatus(s)}
+                  className={`w-full text-left px-4 py-3 rounded-md text-sm transition-colors ${
+                    ticket.statusLabel === s
+                      ? "bg-dark text-white"
+                      : "bg-white text-dark border border-border hover:border-dark"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {s}
+                </button>
+                {/* Under-trin direkte under "i gang"-knappen */}
+                {s === "Arbejde på henvendelse er i gang" && ticket.statusLabel === s && !ticket.isClosed && (
+                  <div style={{ marginLeft: 16, marginTop: 4 }}>
+                    <SubSteps ticket={ticket} onUpdate={refresh} />
+                  </div>
+                )}
+              </div>
             ))}
           </div>
-
-          {/* Under-trin — vises kun når sagen er "i gang" */}
-          {ticket.statusLabel === "Arbejde på henvendelse er i gang" && !ticket.isClosed && (
-            <SubSteps ticket={ticket} onUpdate={refresh} />
-          )}
         </div>
 
         {smsModal && (

@@ -57,55 +57,36 @@ export default function TrackingPage({ params }) {
   const typeLabel = TYPE_LABELS[ticket.type] || ticket.type;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f4f7f6", fontFamily: "Arial, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#f0f3f3", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
 
-      {/* Header */}
-      <header style={{ background: "#003135", borderBottom: "1px solid #002529" }}>
-        <div style={{ maxWidth: 600, margin: "0 auto", padding: "0 20px", height: 64, display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: "50%",
-            background: "#24d9a4", display: "flex", alignItems: "center",
-            justifyContent: "center", fontWeight: 700, fontSize: 16, color: "#003135",
-          }}>B</div>
-          <span style={{ color: "#fff", fontSize: 18, fontWeight: 700 }}>{COMPANY_NAME}</span>
-        </div>
-      </header>
+      <main style={{ maxWidth: 560, margin: "0 auto", padding: "32px 20px 60px" }}>
 
-      <main style={{ maxWidth: 600, margin: "0 auto", padding: "24px 20px 60px" }}>
-
-        {/* Aktuel status banner */}
-        <div style={{
-          background: ticket.isClosed ? "#003135" : "#003135",
-          borderRadius: 12, padding: "24px 24px",
-          marginBottom: 20,
-          display: "flex", alignItems: "flex-start", gap: 16,
-        }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: "50%", background: "#24d9a4",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 22, flexShrink: 0,
-          }}>
-            {ticket.isClosed ? "✓" : "⚙"}
-          </div>
-          <div>
-            <p style={{ margin: "0 0 4px", color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>
-              {ticket.isClosed ? "Afsluttet" : "Aktuel status"}
-            </p>
-            <p style={{ margin: 0, color: "#fff", fontSize: 18, fontWeight: 700, lineHeight: 1.3 }}>
-              {currentLabel}
-            </p>
-          </div>
+        {/* Firma + sagsnummer */}
+        <div style={{ marginBottom: 24 }}>
+          <p style={{ margin: "0 0 4px", fontSize: 13, color: "#6b8a8c", fontWeight: 500 }}>{COMPANY_NAME}</p>
+          <p style={{ margin: 0, fontSize: 12, color: "#9db3b5", letterSpacing: "0.04em" }}>Sag {ticket.ref}</p>
         </div>
 
-        {/* Statusbeskrivelse */}
+        {/* Status banner — ren og professionel */}
         <div style={{
-          background: "#e8f5f0", border: "1px solid #b8ddd5",
-          borderRadius: 10, padding: "14px 18px", marginBottom: 20,
-          fontSize: 14, color: "#2d5a52", lineHeight: 1.6,
+          background: "#fff",
+          borderRadius: 10,
+          padding: "20px 24px",
+          marginBottom: 16,
+          borderLeft: `4px solid ${ticket.isClosed ? "#6b8a8c" : "#003135"}`,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
         }}>
-          {ticket.isClosed
-            ? `Din sag er afsluttet. Tak fordi du valgte ${COMPANY_NAME}. Har du spørgsmål, er du altid velkommen til at kontakte os.`
-            : `Vi arbejder på din sag. Du kan følge forløbet herunder — siden opdateres løbende.`}
+          <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9db3b5" }}>
+            {ticket.isClosed ? "Afsluttet" : "Aktuel status"}
+          </p>
+          <p style={{ margin: 0, fontSize: 17, fontWeight: 600, color: "#1a2e2e", lineHeight: 1.4 }}>
+            {currentLabel}
+          </p>
+          <p style={{ margin: "8px 0 0", fontSize: 13, color: "#6b8a8c", lineHeight: 1.5 }}>
+            {ticket.isClosed
+              ? `Sagen er afsluttet. Kontakt os hvis du har spørgsmål.`
+              : `Vi arbejder på din sag. Siden opdateres løbende.`}
+          </p>
         </div>
 
         {/* Tidslinje */}
