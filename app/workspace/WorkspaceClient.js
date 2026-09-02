@@ -97,12 +97,12 @@ export default function WorkspaceClient() {
   // Baggrundsopdatering efter en mutation (note, status, luk osv.) — beholder
   // den valgte sag og fane synlige i stedet for at skifte til en loading-tekst.
   async function refreshAll() {
-    const list = await (query ? loadSearch(query) : loadList(view === "archived"));
+    await (query ? loadSearch(query) : loadList(view === "archived"));
     await loadDetail(selectedRef, { silent: true });
-    if (!query && selectedRef && !list.find((t) => t.ref === selectedRef)) {
-      const other = await loadList(view !== "archived");
-      if (other.length) selectTicket(other[0].ref);
-    }
+    // Hvis den valgte sag ikke længere er i listen (fx netop lukket mens vi
+    // står under "Aktive"), bliver vi på fanen og beholder sagen åben i
+    // detaljeruden. At skifte liste her ville både vise lukkede sager under
+    // fanen "Aktive" og unmounte SMS-modalen midt i lukkeflowet.
   }
 
   return (

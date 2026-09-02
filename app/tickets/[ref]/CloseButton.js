@@ -19,10 +19,11 @@ export default function CloseButton({ ticket, onChanged }) {
       body: JSON.stringify({ reopen }),
     });
     setLoading(false);
-    refresh();
 
-    // Vis SMS-modal kun ved lukning (ikke ved genåbning)
+    // Vis SMS-modal kun ved lukning (ikke ved genåbning).
+    // Sættes før refresh, så modalen ikke kan nå at blive unmountet.
     if (!reopen) setShowSms(true);
+    refresh();
   }
 
   return (

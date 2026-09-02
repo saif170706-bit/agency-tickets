@@ -37,14 +37,15 @@ export default function StatusControl({ ticket, onChanged }) {
       body: JSON.stringify({ statusLabel }),
     });
     setLoading(false);
-    refresh();
 
-    // Vis SMS-modal hvis det er en relevant status
+    // Vis SMS-modal hvis det er en relevant status.
+    // Sættes før refresh, så modalen ikke kan nå at blive unmountet.
     if (statusLabel === "Afsluttet") {
       setSmsModal("lukket");
     } else if (isIgangStatus(statusLabel)) {
       setSmsModal("igang");
     }
+    refresh();
   }
 
   async function setCurrentStep(stepId) {
