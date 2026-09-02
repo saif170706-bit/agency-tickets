@@ -34,7 +34,7 @@ export default function TicketDetailView({ ticket, notes, secretNotes, logs, doc
             <h3 className="font-sans text-lg text-dark">Sag – {ticket.ref}</h3>
             <span className={`status-pill ${ticket.isClosed ? "is-closed" : "is-open"}`}>
               <span className="dot" />
-              {ticket.isClosed ? "Lukket" : ticket.statusLabel}
+              {ticket.isClosed ? "Afsluttet" : ticket.statusLabel}
             </span>
           </div>
           <InfoRow label="Type" value={{ build: "Hjemmeside byggeri", byggeri: "Hjemmeside byggeri", opdatering: "Hjemmeside opdatering", support: "Support / rettelse", vedligeholdelse: "Vedligeholdelse" }[ticket.type] || ticket.type} />

@@ -8,7 +8,7 @@ import SubSteps from "./SubSteps";
 const SUPPORT_STATUSES = [
   "Henvendelse modtaget",
   "Arbejde på henvendelse er i gang",
-  "Lukket",
+  "Afsluttet",
 ];
 
 // Statuser der indikerer at arbejdet er "i gang" → igang-SMS
@@ -37,7 +37,7 @@ export default function StatusControl({ ticket, onChanged }) {
     refresh();
 
     // Vis SMS-modal hvis det er en relevant status
-    if (statusLabel === "Lukket") {
+    if (statusLabel === "Afsluttet") {
       setSmsModal("lukket");
     } else if (isIgangStatus(statusLabel)) {
       setSmsModal("igang");

@@ -18,7 +18,7 @@ function TicketListItem({ t, active, onClick }) {
       </div>
       <div className="text-xs text-muted mb-1">
         {{ build: "Byggeri", byggeri: "Byggeri", opdatering: "Opdatering", support: "Support", vedligeholdelse: "Vedligeholdelse" }[t.type] || t.type} · {t.ref}
-        {t.isClosed && " · Lukket"}
+        {t.isClosed && " · Afsluttet"}
       </div>
       <div className="text-sm text-dark font-medium truncate mb-1">{t.title}</div>
       <div className="text-xs text-accent">{t.statusLabel}</div>

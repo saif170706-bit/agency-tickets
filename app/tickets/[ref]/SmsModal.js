@@ -61,7 +61,7 @@ export default function SmsModal({ ticket, stage, onClose }) {
   const overLimit = charsLeft < 0;
   const hasPhone = !!ticket.customer.phone;
 
-  const stageLabel = stage === "lukket" ? "Sag lukket" : "Sag i gang";
+  const stageLabel = stage === "lukket" ? "Sag afsluttet" : "Sag i gang";
 
   return (
     // Backdrop

@@ -1,5 +1,5 @@
 function StatusPillMini({ label }) {
-  const closed = label === "Lukket";
+  const closed = label === "Afsluttet";
   return (
     <span className={`status-pill !py-1 !px-3 !text-xs ${closed ? "is-closed" : "is-open"}`}>
       <span className="dot" />
