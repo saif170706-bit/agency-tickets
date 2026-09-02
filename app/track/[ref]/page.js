@@ -162,6 +162,28 @@ export default function TrackingPage({ params }) {
           </ol>
         </div>
 
+        {/* Under-trin (vises kun når sagen er "i gang") */}
+        {ticket.statusLabel === "Arbejde på henvendelse er i gang" && !ticket.isClosed && ticket.subSteps?.length > 0 && (
+          <div style={{ background: "#fff", borderRadius: 12, padding: "24px", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,49,53,0.07)" }}>
+            <p style={{ margin: "0 0 16px", fontWeight: 700, fontSize: 15, color: "#003135" }}>Vi arbejder på</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {ticket.subSteps.map((step) => (
+                <div key={step.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{
+                    width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                    background: step.done ? "#24d9a4" : "#e0ecea",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 11, fontWeight: 700, color: step.done ? "#003135" : "#8aa5a8",
+                  }}>{step.done ? "✓" : ""}</div>
+                  <span style={{ fontSize: 14, color: step.done ? "#8aa5a8" : "#003135", textDecoration: step.done ? "line-through" : "none" }}>
+                    {step.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Sagsdetaljer */}
         <div style={{ background: "#fff", borderRadius: 12, padding: "24px", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,49,53,0.07)" }}>
           <p style={{ margin: "0 0 16px", fontWeight: 700, fontSize: 15, color: "#003135" }}>Sagsdetaljer</p>

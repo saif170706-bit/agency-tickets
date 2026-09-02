@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SmsModal from "./SmsModal";
+import SubSteps from "./SubSteps";
 
 const SUPPORT_STATUSES = [
   "Henvendelse modtaget",
@@ -104,6 +105,11 @@ export default function StatusControl({ ticket, onChanged }) {
               </button>
             ))}
           </div>
+
+          {/* Under-trin — vises kun når sagen er "i gang" */}
+          {ticket.statusLabel === "Arbejde på henvendelse er i gang" && !ticket.isClosed && (
+            <SubSteps ticket={ticket} onUpdate={refresh} />
+          )}
         </div>
 
         {smsModal && (
