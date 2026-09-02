@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 const DEFAULT_ROADMAP = ["Opstartet", "I design", "I udvikling", "Klar til gennemsyn"];
 
 // Typer med roadmap
-const ROADMAP_TYPES = ["byggeri", "opdatering", "build"];
+const ROADMAP_TYPES = ["byggeri", "build"];
 
 const TICKET_TYPES = [
   { value: "support",         label: "Support / rettelse",        desc: "Fejl eller ændring på eksisterende side" },

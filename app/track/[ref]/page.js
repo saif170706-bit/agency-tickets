@@ -12,7 +12,7 @@ const TYPE_LABELS = {
   build: "Hjemmeside byggeri",
 };
 
-const ROADMAP_TYPES = ["build", "byggeri", "opdatering"];
+const ROADMAP_TYPES = ["build", "byggeri"];
 
 function formatDate(iso) {
   if (!iso) return null;

@@ -11,6 +11,9 @@ const SUPPORT_STATUSES = [
   "Afsluttet",
 ];
 
+// Typer der bruger simpel status + under-trin (ikke roadmap)
+const SUPPORT_TYPES = ["support", "vedligeholdelse", "opdatering"];
+
 // Statuser der indikerer at arbejdet er "i gang" → igang-SMS
 const IGANG_KEYWORDS = ["i gang", "igangsat", "påbegynd", "starter", "design", "udvikling"];
 
@@ -84,7 +87,7 @@ export default function StatusControl({ ticket, onChanged }) {
     setSmsModal(null);
   }
 
-  if (ticket.type === "support" || ticket.type === "vedligeholdelse") {
+  if (SUPPORT_TYPES.includes(ticket.type)) {
     return (
       <>
         <div>
@@ -121,7 +124,7 @@ export default function StatusControl({ ticket, onChanged }) {
     );
   }
 
-  // build / byggeri / opdatering — roadmap
+  // build / byggeri — roadmap
   return (
     <>
       <div>
