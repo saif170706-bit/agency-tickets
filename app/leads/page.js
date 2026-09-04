@@ -666,13 +666,22 @@ function AutoTab({ onDone }) {
       {result && (
         <div className="panel">
           <p className="text-sm text-dark">
-            Undersøgte <b>{result.candidatesChecked}</b> virksomheder — <b>{result.withoutWebsite}</b> uden
-            hjemmeside blev fundet, {result.withWebsite} havde tilsyneladende allerede en side.
+            Undersøgte <b>{result.candidatesChecked}</b> virksomheder — <b>{result.withWebsite}</b> har
+            allerede en hjemmeside ifølge CVR eller deres eget domæne.
           </p>
-          <p className="text-sm text-accent mt-2">
-            {result.added} nye lead(s) gemt{result.skipped ? ` (${result.skipped} var allerede gemt fra før)` : ""}.
-            Se dem under "Gemte leads".
-          </p>
+          {result.added > 0 && (
+            <p className="text-sm text-accent mt-2">
+              {result.added} nye lead(s) gemt{result.skipped ? ` (${result.skipped} var allerede gemt fra før)` : ""}.
+              Se dem under "Gemte leads".
+            </p>
+          )}
+          {result.queuedForVerification > 0 && (
+            <p className="text-sm text-muted mt-2">
+              <b>{result.queuedForVerification}</b> virksomheder kunne ikke afgøres på det
+              foreliggende. De bliver lige nu søgt op på nettet i baggrunden — genindlæs "Gemte
+              leads" om et par minutter. Intet kasseres undervejs.
+            </p>
+          )}
         </div>
       )}
     </div>
