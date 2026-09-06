@@ -4,9 +4,8 @@ import { listVerificationQueue, applyVerification } from "../../../../lib/leads"
 
 export const dynamic = "force-dynamic";
 
-// Endpointet kaldes både fra browseren (logget ind) og fra scriptet
-// scripts/verify-leads.mjs, som kører på en pc uden session-cookie og
-// derfor bruger en delt nøgle i stedet.
+// Endpointet kaldes både fra browseren (logget ind) og udefra — fx et
+// cron-job — som ikke har en session-cookie og derfor bruger en delt nøgle.
 function authorize(request) {
   const token = process.env.LEADS_API_TOKEN;
   const header = request.headers.get("authorization") || "";
