@@ -651,7 +651,13 @@ function AutoTab({ onDone }) {
         for (const line of lines) {
           if (!line.trim()) continue;
           const msg = JSON.parse(line);
-          if (msg.type === "progress") setProgress(msg);
+          if (msg.type === "progress") {
+            // Fejl undervejs stopper ikke søgningen — den springer batchen
+            // over og går videre — men de skal være synlige, ikke kun i
+            // serverloggen.
+            if (msg.phase === "fejl") setError(msg.message);
+            else setProgress(msg);
+          }
           else if (msg.type === "error") setError(msg.error);
           else if (msg.type === "done") setResult(msg);
         }
