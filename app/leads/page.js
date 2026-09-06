@@ -586,10 +586,11 @@ function SavedLeadsTab() {
 function AutoTab({ onDone }) {
   const [selected, setSelected] = useState(new Set());
   const [postnummer, setPostnummer] = useState("");
-  const [perBranche, setPerBranche] = useState(15);
+  const [target, setTarget] = useState(15);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
+  const [progress, setProgress] = useState(null);
 
   function toggleBranche(query) {
     setSelected((s) => {
@@ -609,22 +610,58 @@ function AutoTab({ onDone }) {
     setRunning(true);
     setError("");
     setResult(null);
-    const res = await fetch("/api/leads/auto", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        brancheQueries: Array.from(selected),
-        postnummer: postnummer || undefined,
-        perBranche: Number(perBranche) || 15,
-      }),
-    });
-    const data = await res.json().catch(() => ({}));
-    setRunning(false);
+    setProgress(null);
+
+    let res;
+    try {
+      res = await fetch("/api/leads/auto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brancheQueries: Array.from(selected),
+          postnummer: postnummer || undefined,
+          target: Number(target) || 15,
+        }),
+      });
+    } catch {
+      setRunning(false);
+      setError("Mistede forbindelsen til serveren.");
+      return;
+    }
+
     if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setRunning(false);
       setError(data.error || "Automatisk søgning fejlede.");
       return;
     }
-    setResult(data);
+
+    // Serveren sender én JSON-linje ad gangen mens den arbejder. Vi læser
+    // dem løbende, så knappen kan vise hvor langt den er.
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    try {
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const msg = JSON.parse(line);
+          if (msg.type === "progress") setProgress(msg);
+          else if (msg.type === "error") setError(msg.error);
+          else if (msg.type === "done") setResult(msg);
+        }
+      }
+    } catch {
+      setError("Forbindelsen blev afbrudt undervejs. De leads der nåede at blive fundet, er gemt.");
+    }
+
+    setRunning(false);
+    setProgress(null);
     onDone?.();
   }
 
@@ -646,40 +683,50 @@ function AutoTab({ onDone }) {
             <input className="input" placeholder="Fx: 2920" value={postnummer} onChange={(e) => setPostnummer(e.target.value)} />
           </div>
           <div>
-            <label className="label">Antal pr. branche</label>
+            <label className="label">Antal leads der skal findes</label>
             <input
               type="number"
-              min={5}
+              min={1}
               max={50}
               className="input"
-              value={perBranche}
-              onChange={(e) => setPerBranche(e.target.value)}
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
             />
           </div>
         </div>
         {error && <p className="text-danger text-sm mb-4">{error}</p>}
         <button className="btn btn-primary" type="submit" disabled={running}>
-          {running ? "Kører — kan tage et minut…" : "Kør automatisk søgning"}
+          {running
+            ? progress
+              ? `${progress.leadsFound} af ${progress.target} leads fundet…`
+              : "Starter søgning…"
+            : "Kør automatisk søgning"}
         </button>
+        {running && (
+          <p className="text-sm text-muted mt-3">
+            {progress?.message || "Henter kandidater fra CVR…"} Søgningen er først færdig når alle{" "}
+            {target} leads er fundet og gemt — det kan tage adskillige minutter. Luk ikke fanen.
+          </p>
+        )}
       </form>
 
       {result && (
         <div className="panel">
-          <p className="text-sm text-dark">
-            Undersøgte <b>{result.candidatesChecked}</b> virksomheder — <b>{result.withWebsite}</b> har
-            allerede en hjemmeside ifølge CVR eller deres eget domæne.
+          <p className="text-sm text-accent">
+            <b>{result.leadsFound}</b> leads fundet og gemt. Se dem under "Gemte leads".
           </p>
-          {result.added > 0 && (
-            <p className="text-sm text-accent mt-2">
-              {result.added} nye lead(s) gemt{result.skipped ? ` (${result.skipped} var allerede gemt fra før)` : ""}.
-              Se dem under "Gemte leads".
-            </p>
-          )}
-          {result.queuedForVerification > 0 && (
-            <p className="text-sm text-muted mt-2">
-              <b>{result.queuedForVerification}</b> virksomheder kunne ikke afgøres på det
-              foreliggende. De bliver lige nu søgt op på nettet i baggrunden — genindlæs "Gemte
-              leads" om et par minutter. Intet kasseres undervejs.
+          <p className="text-sm text-muted mt-2">
+            Gennemgik {result.examined} virksomheder undervejs — {result.withWebsite} havde allerede
+            en hjemmeside
+            {result.skippedNoPhone > 0 && `, ${result.skippedNoPhone} manglede telefonnummer`}
+            {result.unresolved > 0 && `, ${result.unresolved} kunne ikke afgøres`}.
+          </p>
+          {!result.reachedTarget && (
+            <p className="text-sm text-danger mt-2">
+              Nåede ikke helt målet på {result.target}.{" "}
+              {result.exhausted
+                ? "Der er ikke flere virksomheder tilbage i de valgte brancher — prøv flere brancher eller et andet postnummer."
+                : "Søgningen stoppede ved grænsen for hvor mange virksomheder den må gennemgå i én kørsel. Kør den igen for at fortsætte."}
             </p>
           )}
         </div>
