@@ -601,6 +601,57 @@ function AutoTab({ onDone }) {
     });
   }
 
+  // Én forbindelse til serveren. Returnerer det afsluttende resultat, eller
+  // kaster hvis strømmen blev brudt inden søgningen var færdig.
+  async function runOnce(remaining, alreadyFound) {
+    const res = await fetch("/api/leads/auto", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        brancheQueries: Array.from(selected),
+        postnummer: postnummer || undefined,
+        target: remaining,
+      }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw Object.assign(new Error(data.error || "Automatisk søgning fejlede."), { fatal: true });
+    }
+
+    // Serveren sender én JSON-linje ad gangen mens den arbejder, så knappen
+    // kan tælle op. "ping" er blot et livstegn og ignoreres.
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let final = null;
+
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        const msg = JSON.parse(line);
+        if (msg.type === "progress") {
+          // Et fejlet opslag stopper ikke søgningen — den springer batchen
+          // over — men det skal kunne ses, ikke kun i serverloggen.
+          if (msg.phase === "fejl") setError(msg.message);
+          else setProgress({ ...msg, leadsFound: msg.leadsFound + alreadyFound, target: Number(target) || 15 });
+        } else if (msg.type === "error") {
+          throw Object.assign(new Error(msg.error), { fatal: true });
+        } else if (msg.type === "done") {
+          final = msg;
+        }
+      }
+    }
+
+    if (!final) throw new Error("Forbindelsen blev afbrudt undervejs.");
+    return final;
+  }
+
   async function run(e) {
     e.preventDefault();
     if (selected.size === 0) {
@@ -612,58 +663,40 @@ function AutoTab({ onDone }) {
     setResult(null);
     setProgress(null);
 
-    let res;
-    try {
-      res = await fetch("/api/leads/auto", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          brancheQueries: Array.from(selected),
-          postnummer: postnummer || undefined,
-          target: Number(target) || 15,
-        }),
-      });
-    } catch {
-      setRunning(false);
-      setError("Mistede forbindelsen til serveren.");
-      return;
-    }
+    const wanted = Number(target) || 15;
+    let found = 0;
+    const totals = { examined: 0, withWebsite: 0, skippedNoPhone: 0, unresolved: 0 };
+    let last = null;
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setRunning(false);
-      setError(data.error || "Automatisk søgning fejlede.");
-      return;
-    }
-
-    // Serveren sender én JSON-linje ad gangen mens den arbejder. Vi læser
-    // dem løbende, så knappen kan vise hvor langt den er.
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    try {
-      for (;;) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop();
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          const msg = JSON.parse(line);
-          if (msg.type === "progress") {
-            // Fejl undervejs stopper ikke søgningen — den springer batchen
-            // over og går videre — men de skal være synlige, ikke kun i
-            // serverloggen.
-            if (msg.phase === "fejl") setError(msg.message);
-            else setProgress(msg);
-          }
-          else if (msg.type === "error") setError(msg.error);
-          else if (msg.type === "done") setResult(msg);
+    // Søgningen kan køre længe nok til at en forbindelse dør undervejs. De
+    // leads der allerede er fundet, er gemt og udelades af næste CVR-opslag,
+    // så vi kan bare tage fat hvor vi slap i stedet for at bede brugeren om
+    // at starte forfra.
+    for (let attempt = 0; attempt < 4 && found < wanted; attempt++) {
+      try {
+        last = await runOnce(wanted - found, found);
+      } catch (err) {
+        if (err.fatal) {
+          setError(err.message);
+          break;
         }
+        setError(`Forbindelsen blev afbrudt — fortsætter hvor den slap (${found} af ${wanted} fundet).`);
+        continue;
       }
-    } catch {
-      setError("Forbindelsen blev afbrudt undervejs. De leads der nåede at blive fundet, er gemt.");
+      found += last.leadsFound;
+      for (const k of Object.keys(totals)) totals[k] += last[k] || 0;
+      if (last.exhausted || last.stoppedAtLimit) break;
+    }
+
+    if (last) {
+      setResult({
+        ...last,
+        ...totals,
+        leadsFound: found,
+        target: wanted,
+        reachedTarget: found >= wanted,
+      });
+      if (found >= wanted) setError("");
     }
 
     setRunning(false);

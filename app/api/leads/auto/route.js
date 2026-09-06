@@ -23,7 +23,22 @@ export async function POST(request) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      const send = (obj) => controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"));
+      let closed = false;
+      const send = (obj) => {
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(JSON.stringify(obj) + "\n"));
+        } catch {
+          closed = true; // browseren er gået — kørslen får besked nedenfor
+        }
+      };
+
+      // Et enkelt net-opslag kan tage over halvandet minut, og statuslinjerne
+      // kommer kun imellem opslagene. Cloudflare lukker en request der ikke
+      // har sendt noget i omkring hundrede sekunder, så vi sender et livstegn
+      // undervejs for at holde forbindelsen i live.
+      const heartbeat = setInterval(() => send({ type: "ping" }), 10000);
+
       try {
         const result = await autoDiscoverLeads(
           {
@@ -38,7 +53,12 @@ export async function POST(request) {
       } catch (err) {
         send({ type: "error", error: err.message });
       } finally {
-        controller.close();
+        clearInterval(heartbeat);
+        try {
+          controller.close();
+        } catch {
+          // allerede lukket i den anden ende
+        }
       }
     },
   });
