@@ -586,11 +586,26 @@ function SavedLeadsTab() {
 function AutoTab({ onDone }) {
   const [selected, setSelected] = useState(new Set());
   const [postnummer, setPostnummer] = useState("");
-  const [target, setTarget] = useState(15);
-  const [running, setRunning] = useState(false);
+  const [antal, setAntal] = useState(35);
+  const [finding, setFinding] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState(null);
-  const [progress, setProgress] = useState(null);
+  const [batch, setBatch] = useState(null);   // { count, prompt, ...statistik }
+  const [svar, setSvar] = useState("");
+  const [gemmer, setGemmer] = useState(false);
+  const [resultat, setResultat] = useState(null);
+  const [kopieret, setKopieret] = useState(false);
+  const [bekraeftAlle, setBekraeftAlle] = useState(false);
+
+  // En halvfærdig omgang må ikke gå tabt ved genindlæsning — ligger der
+  // stadig virksomheder i køen, hentes prompten frem igen.
+  useEffect(() => {
+    fetch("/api/leads/candidates")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.count > 0) setBatch(d);
+      })
+      .catch(() => {});
+  }, []);
 
   function toggleBranche(query) {
     setSelected((s) => {
@@ -601,112 +616,74 @@ function AutoTab({ onDone }) {
     });
   }
 
-  // Én forbindelse til serveren. Returnerer det afsluttende resultat, eller
-  // kaster hvis strømmen blev brudt inden søgningen var færdig.
-  async function runOnce(remaining, alreadyFound) {
-    const res = await fetch("/api/leads/auto", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        brancheQueries: Array.from(selected),
-        postnummer: postnummer || undefined,
-        target: remaining,
-      }),
-    });
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw Object.assign(new Error(data.error || "Automatisk søgning fejlede."), { fatal: true });
-    }
-
-    // Serveren sender én JSON-linje ad gangen mens den arbejder, så knappen
-    // kan tælle op. "ping" er blot et livstegn og ignoreres.
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let final = null;
-
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop();
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        const msg = JSON.parse(line);
-        if (msg.type === "progress") {
-          // Et fejlet opslag stopper ikke søgningen — den springer batchen
-          // over — men det skal kunne ses, ikke kun i serverloggen.
-          if (msg.phase === "fejl") setError(msg.message);
-          else setProgress({ ...msg, leadsFound: msg.leadsFound + alreadyFound, target: Number(target) || 15 });
-        } else if (msg.type === "error") {
-          throw Object.assign(new Error(msg.error), { fatal: true });
-        } else if (msg.type === "done") {
-          final = msg;
-        }
-      }
-    }
-
-    if (!final) throw new Error("Forbindelsen blev afbrudt undervejs.");
-    return final;
-  }
-
-  async function run(e) {
+  async function findKandidater(e) {
     e.preventDefault();
     if (selected.size === 0) {
       setError("Vælg mindst én branche.");
       return;
     }
-    setRunning(true);
+    setFinding(true);
     setError("");
-    setResult(null);
-    setProgress(null);
+    setResultat(null);
+    setSvar("");
 
-    const wanted = Number(target) || 15;
-    let found = 0;
-    const totals = { examined: 0, withWebsite: 0, skippedNoPhone: 0, unresolved: 0 };
-    let last = null;
-
-    // Søgningen kan køre længe nok til at en forbindelse dør undervejs. De
-    // leads der allerede er fundet, er gemt og udelades af næste CVR-opslag,
-    // så vi kan bare tage fat hvor vi slap i stedet for at bede brugeren om
-    // at starte forfra.
-    for (let attempt = 0; attempt < 4 && found < wanted; attempt++) {
-      try {
-        last = await runOnce(wanted - found, found);
-      } catch (err) {
-        if (err.fatal) {
-          setError(err.message);
-          break;
-        }
-        setError(`Forbindelsen blev afbrudt — fortsætter hvor den slap (${found} af ${wanted} fundet).`);
-        continue;
-      }
-      found += last.leadsFound;
-      for (const k of Object.keys(totals)) totals[k] += last[k] || 0;
-      if (last.exhausted || last.stoppedAtLimit) break;
+    const res = await fetch("/api/leads/candidates", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        brancheQueries: Array.from(selected),
+        postnummer: postnummer || undefined,
+        antal: Number(antal) || 35,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setFinding(false);
+    if (!res.ok) {
+      setError(data.error || "Kunne ikke hente kandidater.");
+      return;
     }
+    setBatch(data);
+  }
 
-    if (last) {
-      setResult({
-        ...last,
-        ...totals,
-        leadsFound: found,
-        target: wanted,
-        reachedTarget: found >= wanted,
-      });
-      if (found >= wanted) setError("");
+  async function kopier() {
+    try {
+      await navigator.clipboard.writeText(batch.prompt);
+      setKopieret(true);
+      setTimeout(() => setKopieret(false), 2000);
+    } catch {
+      setError("Kunne ikke kopiere — markér teksten og kopiér manuelt.");
     }
+  }
 
-    setRunning(false);
-    setProgress(null);
+  async function gemSvar(force = false) {
+    setGemmer(true);
+    setError("");
+    const res = await fetch("/api/leads/candidates/apply", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: svar, force }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setGemmer(false);
+    if (!res.ok) {
+      setError(data.error || "Kunne ikke gemme svaret.");
+      // Mistænkeligt mange nævnt — lad brugeren se advarslen og selv sige god for det.
+      setBekraeftAlle(Boolean(data.kraeverBekraeftelse));
+      return;
+    }
+    setBekraeftAlle(false);
+    setResultat(data);
+    setBatch(null);
+    setSvar("");
     onDone?.();
   }
 
   return (
     <div>
-      <form onSubmit={run} className="card p-6 mb-6">
+      <form onSubmit={findKandidater} className="card p-6 mb-6">
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted mb-3">
+          Trin 1 — find kandidater
+        </div>
         <label className="label mb-2 block">Vælg brancher</label>
         <div className="grid grid-cols-2 gap-2 mb-5">
           {SUGGESTED_BRANCHES.map((b) => (
@@ -722,57 +699,103 @@ function AutoTab({ onDone }) {
             <input className="input" placeholder="Fx: 2920" value={postnummer} onChange={(e) => setPostnummer(e.target.value)} />
           </div>
           <div>
-            <label className="label">Antal leads der skal findes</label>
+            <label className="label">Antal virksomheder</label>
             <input
               type="number"
               min={1}
-              max={50}
+              max={100}
               className="input"
-              value={target}
-              onChange={(e) => setTarget(e.target.value)}
+              value={antal}
+              onChange={(e) => setAntal(e.target.value)}
             />
           </div>
         </div>
         {error && <p className="text-danger text-sm mb-4">{error}</p>}
-        <button className="btn btn-primary" type="submit" disabled={running}>
-          {running
-            ? progress
-              ? `${progress.leadsFound} af ${progress.target} leads fundet…`
-              : "Starter søgning…"
-            : "Kør automatisk søgning"}
+        <button className="btn btn-primary" type="submit" disabled={finding}>
+          {finding ? "Henter fra CVR…" : "Find kandidater"}
         </button>
-        {running && (
-          <p className="text-sm text-muted mt-3">
-            {progress?.message || "Henter kandidater fra CVR…"} Søgningen er først færdig når alle{" "}
-            {target} leads er fundet og gemt — det kan tage adskillige minutter. Luk ikke fanen.
-          </p>
-        )}
+        <p className="text-sm text-muted mt-3">
+          Henter virksomheder fra CVR og sorterer dem fra, der mangler telefonnummer eller allerede
+          har en hjemmeside registreret. Der søges ikke på nettet her — det koster ingenting.
+        </p>
       </form>
 
-      {result && (
-        <div className="panel">
-          <p className="text-sm text-accent">
-            <b>{result.leadsFound}</b> leads fundet og gemt. Se dem under "Gemte leads".
+      {batch?.count > 0 && (
+        <div className="card p-6 mb-6">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted mb-3">
+            Trin 2 — slå dem op
+          </div>
+          <p className="text-sm text-dark mb-3">
+            <b>{batch.count}</b> virksomheder klar. Kopiér teksten herunder, indsæt den i en
+            Claude-samtale, og sæt svaret ind i feltet nedenfor.
           </p>
-          <p className="text-sm text-muted mt-2">
-            Gennemgik {result.examined} virksomheder undervejs — {result.withWebsite} havde allerede
-            en hjemmeside
-            {result.skippedNoPhone > 0 && `, ${result.skippedNoPhone} manglede telefonnummer`}
-            {result.unresolved > 0 && `, ${result.unresolved} kunne ikke afgøres`}.
-          </p>
-          {!result.reachedTarget && (
-            <p className="text-sm text-danger mt-2">
-              Nåede ikke helt målet på {result.target}.{" "}
-              {result.exhausted
-                ? "Der er ikke flere virksomheder tilbage i de valgte brancher — prøv flere brancher eller et andet postnummer."
-                : "Søgningen stoppede ved grænsen for hvor mange virksomheder den må gennemgå i én kørsel. Kør den igen for at fortsætte."}
+          <textarea className="input font-mono text-xs" rows={8} readOnly value={batch.prompt} />
+          <button type="button" onClick={kopier} className="btn btn-outline mt-3">
+            {kopieret ? "Kopieret ✓" : "Kopiér prompt"}
+          </button>
+          {batch.examined > 0 && (
+            <p className="text-sm text-muted mt-3">
+              Gennemgik {batch.examined} virksomheder i CVR — {batch.withWebsite} havde allerede en
+              hjemmeside registreret, {batch.skippedNoPhone} manglede telefonnummer.
             </p>
           )}
+        </div>
+      )}
+
+      {batch?.count > 0 && (
+        <div className="card p-6 mb-6">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted mb-3">
+            Trin 3 — sæt svaret ind
+          </div>
+          <p className="text-sm text-muted mb-3">
+            Indsæt CVR-numrene på dem uden hjemmeside. De bliver gemt som leads. Alle andre i
+            omgangen regnes for at have en hjemmeside og dukker ikke op igen.
+          </p>
+          <textarea
+            className="input font-mono text-xs"
+            rows={6}
+            placeholder={"12345678\n87654321\n…"}
+            value={svar}
+            onChange={(e) => setSvar(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => gemSvar(false)}
+            disabled={gemmer || !svar.trim()}
+            className="btn btn-primary mt-3"
+          >
+            {gemmer ? "Gemmer…" : "Gem som leads"}
+          </button>
+          {bekraeftAlle && (
+            <button
+              type="button"
+              onClick={() => gemSvar(true)}
+              disabled={gemmer}
+              className="btn btn-outline mt-3 ml-2"
+            >
+              Ja, gem dem alligevel
+            </button>
+          )}
+        </div>
+      )}
+
+      {resultat && (
+        <div className="panel">
+          <p className="text-sm text-accent">
+            <b>{resultat.newLeads}</b> leads gemt. Se dem under "Gemte leads".
+          </p>
+          <p className="text-sm text-muted mt-2">
+            {resultat.hadWebsite} virksomheder blev markeret som havende en hjemmeside og udelades
+            fremover.
+            {resultat.ukendte > 0 &&
+              ` ${resultat.ukendte} CVR-numre i teksten hørte ikke til denne omgang og blev sprunget over.`}
+          </p>
         </div>
       )}
     </div>
   );
 }
+
 
 export default function LeadsPage() {
   const [tab, setTab] = useState("auto");
