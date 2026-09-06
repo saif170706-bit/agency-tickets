@@ -645,6 +645,18 @@ function AutoTab({ onDone }) {
     setBatch(data);
   }
 
+  async function rydListe() {
+    setError("");
+    const res = await fetch("/api/leads/candidates", { method: "DELETE" });
+    if (!res.ok) {
+      setError("Kunne ikke rydde listen.");
+      return;
+    }
+    setBatch(null);
+    setSvar("");
+    setResultat(null);
+  }
+
   async function kopier() {
     try {
       await navigator.clipboard.writeText(batch.prompt);
@@ -730,9 +742,19 @@ function AutoTab({ onDone }) {
             Claude-samtale, og sæt svaret ind i feltet nedenfor.
           </p>
           <textarea className="input font-mono text-xs" rows={8} readOnly value={batch.prompt} />
-          <button type="button" onClick={kopier} className="btn btn-outline mt-3">
-            {kopieret ? "Kopieret ✓" : "Kopiér prompt"}
-          </button>
+          <div className="flex gap-2 mt-3">
+            <button type="button" onClick={kopier} className="btn btn-outline">
+              {kopieret ? "Kopieret ✓" : "Kopiér prompt"}
+            </button>
+            <button type="button" onClick={rydListe} className="btn btn-outline">
+              Ryd listen
+            </button>
+          </div>
+          <p className="text-sm text-muted mt-3">
+            Listen indeholder alle virksomheder der venter på at blive afgjort — også dem fra
+            tidligere omgange. Rydder du den, glemmes de helt og kan dukke op igen i en senere
+            søgning.
+          </p>
           {batch.examined > 0 && (
             <p className="text-sm text-muted mt-3">
               Gennemgik {batch.examined} virksomheder i CVR — {batch.withWebsite} havde allerede en

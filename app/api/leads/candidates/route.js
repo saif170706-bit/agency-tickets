@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentEmployee } from "../../../../lib/session";
 import { findCandidates } from "../../../../lib/autoLeads";
 import { buildPrompt } from "../../../../lib/leadPrompt";
+import { clearVerificationQueue } from "../../../../lib/leads";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -32,4 +33,12 @@ export async function GET() {
   const employee = getCurrentEmployee();
   if (!employee) return NextResponse.json({ error: "Ikke logget ind" }, { status: 401 });
   return NextResponse.json({ ok: true, ...buildPrompt(200) });
+}
+
+// Rydder listen uden at gemme noget. Virksomhederne glemmes og kan dukke op
+// igen i en senere søgning.
+export async function DELETE() {
+  const employee = getCurrentEmployee();
+  if (!employee) return NextResponse.json({ error: "Ikke logget ind" }, { status: 401 });
+  return NextResponse.json({ ok: true, ryddet: clearVerificationQueue() });
 }
